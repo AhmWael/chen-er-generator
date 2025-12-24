@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chen ER Diagram Generator</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+    <h1>Chen ER Diagram Generator</h1>
+</header>
+
+<main>
+    <section class="editor-section">
+        <h2>DSL Input</h2>
+        <textarea id="dslInput"></textarea>
+        <button id="compileBtn">Compile</button>
+        <button id="downloadBtn">Download SVG</button>
+    </section>
+
+    <section class="preview-section">
+        <h2>SVG Preview</h2>
+        <div id="svgContainer">Your diagram will appear here...</div>
+    </section>
+
+    <section class="help-section">
+        <h2>Help / Syntax</h2>
+        <pre id="helpText">
+# Entities
+entity EntityName
+weak entity WeakEntityName
+
+# Attributes
+attribute attributeName
+attribute primaryKey PK
+attribute multiValued MULTI
+attribute derived DERIVED
+
+# Relationships
+relationship RelationshipName
+RelationshipName Entity1 (1) -- (N) Entity2
+identifying relationship IdentifyingRelName
+
+# Specialization / Generalization
+ISA SuperEntity { Sub1, Sub2 }
+
+# Examples:
+entity Book
+attribute isbn PK
+attribute title
+entity Author
+relationship Written_By
+Book (N) -- (M) Author
+        </pre>
+    </section>
+
+    <section class="credits">
+        <p>Powered by <a href="https://graphviz.org/">Graphviz</a> (WASM)</p>
+    </section>
+</main>
+
+<script src="graphviz.min.js"></script>
+<script src="parser.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

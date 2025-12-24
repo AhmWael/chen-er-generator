@@ -1,0 +1,52 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background: #4a90e2;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 2rem;
+}
+
+textarea {
+    width: 100%;
+    height: 250px;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+button {
+    margin-top: 0.5rem;
+    margin-right: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+#svgContainer {
+    border: 1px solid #ccc;
+    min-height: 350px;
+    max-height: 800px;
+    overflow: auto;
+}
+
+.help-section {
+    background: #f8f8f8;
+    padding: 1rem;
+    border-radius: 5px;
+}
+
+.credits {
+    text-align: center;
+    font-size: 0.9rem;
+}
