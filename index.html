@@ -60,7 +60,12 @@ Book (N) -- (M) Author
     </section>
 </main>
 
-<script src="graphviz.min.js"></script>
+<!-- Load Graphviz WASM via ES module -->
+<script type="module">
+  import { Graphviz } from "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm-graphviz/dist/index.min.js";
+  Graphviz.wasmFolder = "https://cdn.jsdelivr.net/npm/@hpcc-js/wasm-graphviz/dist/";
+  window.GraphvizModule = Graphviz;
+</script>
 <script src="parser.js"></script>
 <script src="app.js"></script>
 </body>
