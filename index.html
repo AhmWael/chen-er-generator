@@ -29,31 +29,109 @@
     <section class="help-section">
         <h2>Help / Syntax</h2>
         <pre id="helpText">
-# Entities
+# ==============================
+# Chen ER Diagram DSL – Syntax
+# ==============================
+
+# ------------------------------
+# ENTITIES
+# ------------------------------
+
 entity EntityName
 weak entity WeakEntityName
 
-# Attributes
-attribute attributeName
-attribute primaryKey PK
-attribute multiValued MULTI
-attribute derived DERIVED
+# Examples:
+entity Student
+weak entity Enrollment
 
-# Relationships
-relationship RelationshipName
-RelationshipName Entity1 (1) -- (N) Entity2
-identifying relationship IdentifyingRelName
 
-# Specialization / Generalization
-ISA SuperEntity { Sub1, Sub2 }
+# ------------------------------
+# ATTRIBUTES
+# ------------------------------
+
+# Basic attribute
+attribute EntityName attributeName
+
+# Key attribute (underlined)
+attribute EntityName attributeName PK
+
+# Multivalued attribute (double oval)
+attribute EntityName attributeName MULTI
+
+# Derived attribute (dashed oval)
+attribute EntityName attributeName DERIVED
 
 # Examples:
-entity Book
-attribute isbn PK
-attribute title
-entity Author
-relationship Written_By
-Book (N) -- (M) Author
+attribute Student id PK
+attribute Student phone MULTI
+attribute Student age DERIVED
+
+
+# ------------------------------
+# COMPOSITE ATTRIBUTE
+# ------------------------------
+
+composite EntityName attributeName { sub1, sub2, sub3 }
+
+# Example:
+composite Student address { street, city, zip }
+
+
+# ------------------------------
+# RELATIONSHIPS
+# ------------------------------
+
+# Regular relationship
+relationship RelationshipName
+
+# Identifying relationship (double diamond)
+identifying relationship RelationshipName
+
+# Examples:
+relationship Enrolls
+identifying relationship HasEnrollment
+
+
+# ------------------------------
+# CARDINALITY & PARTICIPATION
+# ------------------------------
+
+RelationshipName EntityA (1|N|M) (TOTAL|PARTIAL) -- (1|N|M) (TOTAL|PARTIAL) EntityB
+
+# TOTAL   = total participation (double line)
+# PARTIAL = partial participation (single line)
+
+# Examples:
+Enrolls Student (1) TOTAL -- (N) PARTIAL Course
+HasEnrollment Enrollment (1) TOTAL -- (1) TOTAL Student
+
+
+# ------------------------------
+# COMMENTS
+# ------------------------------
+
+# Any line starting with # is ignored
+
+
+# ------------------------------
+# COMPLETE EXAMPLE
+# ------------------------------
+
+entity Student
+entity Course
+weak entity Enrollment
+
+attribute Student id PK
+attribute Student phone MULTI
+attribute Student age DERIVED
+
+composite Student address { street, city, zip }
+
+relationship Enrolls
+identifying relationship HasEnrollment
+
+Enrolls Student (1) TOTAL -- (N) PARTIAL Course
+HasEnrollment Enrollment (1) TOTAL -- (1) TOTAL Student
         </pre>
     </section>
 
