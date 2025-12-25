@@ -7,6 +7,8 @@ const downloadPngBtn = document.getElementById('downloadPngBtn');
 const svgContainer = document.getElementById('svgContainer');
 const dslInput = document.getElementById('dslInput');
 
+let panZoomInstance = null; // store panZoom instance
+
 // -------------------------
 // Starter DSL
 // -------------------------
@@ -41,8 +43,25 @@ dslInput.value = starterDSL;
 async function renderSVG(dot) {
     try {
         const graphviz = await window.GraphvizModule.load();
-        const svg = graphviz.dot(dot);
-        svgContainer.innerHTML = svg;
+        const svgStr = graphviz.dot(dot); // still a string
+
+        // Convert string into DOM element
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(svgStr, "image/svg+xml");
+        const svgElem = svgDoc.documentElement;
+
+        // Clear previous content and append SVG node
+        svgContainer.innerHTML = "";
+        svgContainer.appendChild(svgElem);
+
+        // Initialize zoom
+        if (window.panZoomInstance) window.panZoomInstance.destroy();
+        window.panZoomInstance = svgPanZoom(svgElem, {
+            zoomEnabled: true,
+            controlIconsEnabled: true,
+            fit: true,
+            center: true
+        });
     } catch (err) {
         svgContainer.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
         console.error(err);

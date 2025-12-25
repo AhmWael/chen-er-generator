@@ -50,9 +50,14 @@ function parseDSL(dsl) {
     // -------------------------
     let dot = `graph ER {
 layout=neato;
-overlap=false;
+overlap=scale;
 splines=true;
-repulsiveforce=3.0;
+K=0.8;         // Global spring constant
+epsilon=0.07;   // Termination condition
+damping=0.99;  // Damping factor
+defaultdist=1; // Default edge length
+scale=1.0;
+sep="+1,+1";   // Minimum node separation
 
 node [fontname="Helvetica", width=1.6, height=0.9];
 `;
@@ -83,7 +88,7 @@ node [fontname="Helvetica", width=1.6, height=0.9];
         const label = a.type === "PK" ? `< <u>${a.name}</u> >` : `"${a.name}"`;
         const node = `${a.owner}_${a.name}`;
         dot += `  ${node} [shape=ellipse, label=${label}${extra.length ? ", " + extra.join(",") : ""}];\n`;
-        dot += `  ${a.owner} -- ${node} [len=0.7, weight=5];\n`; // strong edge to stay close
+        dot += `  ${a.owner} -- ${node} [len=0.5, weight=5];\n`; // strong edge to stay close
     }
 
     // -------------------------
@@ -92,11 +97,11 @@ node [fontname="Helvetica", width=1.6, height=0.9];
     for (const c of composites) {
         const root = `${c.owner}_${c.name}`;
         dot += `  ${root} [shape=ellipse, label="${c.name}"];\n`;
-        dot += `  ${c.owner} -- ${root} [len=0.7];\n`;
+        dot += `  ${c.owner} -- ${root} [len=0.7, weight=5];\n`;
         for (const p of c.parts) {
             const part = `${root}_${p}`;
             dot += `  ${part} [shape=ellipse, label="${p}"];\n`;
-            dot += `  ${root} -- ${part} [len=0.5];\n`;
+            dot += `  ${root} -- ${part} [len=0.5, weight=5];\n`;
         }
     }
 
@@ -104,8 +109,8 @@ node [fontname="Helvetica", width=1.6, height=0.9];
     for (const e of edges) {
         const fromPen = e.fromPart === "TOTAL" ? 3 : 1;
         const toPen = e.toPart === "TOTAL" ? 3 : 1;
-        dot += `  ${e.rel} -- ${e.from} [label="${e.fromCard}", penwidth=${fromPen}, len=5.0, weight=1];\n`;
-        dot += `  ${e.rel} -- ${e.to} [label="${e.toCard}", penwidth=${toPen}, len=5.0, weight=1];\n`;
+        dot += `  ${e.rel} -- ${e.from} [label="${e.fromCard}", penwidth=${fromPen}, length=1.0, weight=0.5];\n`;
+        dot += `  ${e.rel} -- ${e.to} [label="${e.toCard}", penwidth=${toPen}, length=1.0, weight=0.5];\n`;
     }
 
     dot += "}";
