@@ -11,6 +11,12 @@ const dslInput = document.getElementById('dslInput');
 // Starter DSL
 // -------------------------
 const starterDSL = `# Starter Chen ER example
+
+#colors
+entities: #AED6F1
+weak_entities: #D6EAF8
+relationships: #FFE4B5
+
 entity Student
 entity Course
 weak entity Enrollment
