@@ -7,7 +7,8 @@ const downloadPngBtn = document.getElementById('downloadPngBtn');
 const svgContainer = document.getElementById('svgContainer');
 const dslInput = document.getElementById('dslInput');
 
-let panZoomInstance = null; // store panZoom instance
+let panZoomInstance = null;
+let originalSvgString = null; // Store clean SVG before pan-zoom modifications
 
 // -------------------------
 // Starter DSL
@@ -43,7 +44,10 @@ dslInput.value = starterDSL;
 async function renderSVG(dot) {
     try {
         const graphviz = await window.GraphvizModule.load();
-        const svgStr = graphviz.dot(dot); // still a string
+        const svgStr = graphviz.dot(dot);
+
+        // Store the original clean SVG string for downloads
+        originalSvgString = svgStr;
 
         // Convert string into DOM element
         const parser = new DOMParser();
@@ -54,9 +58,14 @@ async function renderSVG(dot) {
         svgContainer.innerHTML = "";
         svgContainer.appendChild(svgElem);
 
-        // Initialize zoom
-        if (window.panZoomInstance) window.panZoomInstance.destroy();
-        window.panZoomInstance = svgPanZoom(svgElem, {
+        // Destroy previous pan-zoom instance
+        if (panZoomInstance) {
+            panZoomInstance.destroy();
+            panZoomInstance = null;
+        }
+
+        // Initialize new pan-zoom instance
+        panZoomInstance = svgPanZoom(svgElem, {
             zoomEnabled: true,
             controlIconsEnabled: true,
             fit: true,
@@ -81,16 +90,12 @@ compileBtn.addEventListener('click', async () => {
 });
 
 // -------------------------
-// Download SVG
+// Download SVG (use original, not modified)
 // -------------------------
 downloadBtn.addEventListener('click', () => {
-    const svg = svgContainer.querySelector('svg');
-    if (!svg) return alert('No SVG to download');
+    if (!originalSvgString) return alert('No SVG to download');
 
-    const serializer = new XMLSerializer();
-    const source = serializer.serializeToString(svg);
-    const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
-
+    const blob = new Blob([originalSvgString], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -102,17 +107,13 @@ downloadBtn.addEventListener('click', () => {
 });
 
 // -------------------------
-// Download PNG (SVG → Canvas)
+// Download PNG (use original SVG, not modified)
 // -------------------------
 downloadPngBtn.addEventListener('click', () => {
-    const svg = svgContainer.querySelector('svg');
-    if (!svg) return alert('No diagram to export');
-
-    const serializer = new XMLSerializer();
-    const svgStr = serializer.serializeToString(svg);
+    if (!originalSvgString) return alert('No diagram to export');
 
     const img = new Image();
-    const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+    const svgBlob = new Blob([originalSvgString], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(svgBlob);
 
     img.onload = () => {
