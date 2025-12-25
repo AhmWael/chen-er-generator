@@ -46,40 +46,39 @@ function parseDSL(dsl) {
     }
 
     // -------------------------
-    // DOT generation (neato)
+    // DOT generation (neato) - CONTROLLED SEPARATION
     // -------------------------
     let dot = `graph ER {
 layout=neato;
 overlap=scale;
+overlap_scaling=0.003;
 splines=true;
-K=0.8;         // Global spring constant
-epsilon=0.07;   // Termination condition
-damping=0.99;  // Damping factor
-defaultdist=1; // Default edge length
-scale=1.0;
-sep="+1,+1";   // Minimum node separation
+K=0.4;
+epsilon=0.01;
+defaultdist=1.0;
 
 node [fontname="Helvetica", width=1.6, height=0.9];
+edge [len=1.5];
 `;
 
     // -------------------------
-    // Entities
+    // Entities (larger margin for separation)
     // -------------------------
     for (const [name, e] of Object.entries(entities)) {
         const periph = e.weak ? ", peripheries=2" : "";
         const fillColor = e.weak ? weakEntityColor : entityColor;
-        dot += `  ${name} [shape=rectangle${periph}, style=filled, fillcolor="${fillColor}"];\n`;
+        dot += `  ${name} [shape=rectangle${periph}, style=filled, fillcolor="${fillColor}", margin="0.3,0.2"];\n`;
     }
 
     // -------------------------
-    // Relationships
+    // Relationships (larger margin for separation)
     // -------------------------
     for (const [name, r] of Object.entries(relationships)) {
         const periph = r.identifying ? ", peripheries=2" : "";
-        dot += `  ${name} [shape=diamond${periph}, style=filled, fillcolor="${relationshipColor}"];\n`;
+        dot += `  ${name} [shape=diamond${periph}, style=filled, fillcolor="${relationshipColor}", margin="0.3,0.2"];\n`;
     }
 
-    // Attributes (closer to entity)
+    // Attributes (compact, small nodes)
     for (const a of attributes) {
         let extra = [];
         if (a.type === "MULTI") extra.push("peripheries=2");
@@ -87,30 +86,30 @@ node [fontname="Helvetica", width=1.6, height=0.9];
 
         const label = a.type === "PK" ? `< <u>${a.name}</u> >` : `"${a.name}"`;
         const node = `${a.owner}_${a.name}`;
-        dot += `  ${node} [shape=ellipse, label=${label}${extra.length ? ", " + extra.join(",") : ""}];\n`;
-        dot += `  ${a.owner} -- ${node} [len=0.5, weight=5];\n`; // strong edge to stay close
+        dot += `  ${node} [shape=ellipse, label=${label}, width=0.8, height=0.5, margin="0.1,0.05"${extra.length ? ", " + extra.join(",") : ""}];\n`;
+        dot += `  ${a.owner} -- ${node} [len=0.5, weight=50];\n`;
     }
 
     // -------------------------
-    // Composite attributes
+    // Composite attributes (compact, small nodes)
     // -------------------------
     for (const c of composites) {
         const root = `${c.owner}_${c.name}`;
-        dot += `  ${root} [shape=ellipse, label="${c.name}"];\n`;
-        dot += `  ${c.owner} -- ${root} [len=0.7, weight=5];\n`;
+        dot += `  ${root} [shape=ellipse, label="${c.name}", width=0.8, height=0.5, margin="0.1,0.05"];\n`;
+        dot += `  ${c.owner} -- ${root} [len=0.5, weight=30];\n`;
         for (const p of c.parts) {
             const part = `${root}_${p}`;
-            dot += `  ${part} [shape=ellipse, label="${p}"];\n`;
-            dot += `  ${root} -- ${part} [len=0.5, weight=5];\n`;
+            dot += `  ${part} [shape=ellipse, label="${p}", width=0.8, height=0.5, margin="0.1,0.05"];\n`;
+            dot += `  ${root} -- ${part} [len=0.5, weight=30];\n`;
         }
     }
 
-    // Relationships (farther)
+    // Relationships (moderate distance)
     for (const e of edges) {
         const fromPen = e.fromPart === "TOTAL" ? 3 : 1;
         const toPen = e.toPart === "TOTAL" ? 3 : 1;
-        dot += `  ${e.rel} -- ${e.from} [label="${e.fromCard}", penwidth=${fromPen}, length=1.0, weight=0.5];\n`;
-        dot += `  ${e.rel} -- ${e.to} [label="${e.toCard}", penwidth=${toPen}, length=1.0, weight=0.5];\n`;
+        dot += `  ${e.rel} -- ${e.from} [label="${e.fromCard}", penwidth=${fromPen}, len=0.5, weight=10];\n`;
+        dot += `  ${e.rel} -- ${e.to} [label="${e.toCard}", penwidth=${toPen}, len=0.5, weight=10];\n`;
     }
 
     dot += "}";
