@@ -1,76 +1,116 @@
-// Full-featured Chen ER DSL parser
 function parseDSL(dsl) {
-    const lines = dsl.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
-    const entities = [];
-    const weakEntities = [];
+    const lines = dsl.split("\n").map(l => l.trim()).filter(l => l && !l.startsWith("#"));
+
+    const entities = {};
+    const relationships = {};
     const attributes = [];
-    const relationships = [];
-    const isa = [];
+    const composites = [];
     const edges = [];
 
-    lines.forEach(line => {
+    for (const line of lines) {
         let m;
-        // ISA
-        if (m = line.match(/^ISA\s+(\w+)\s*{(.+)}$/)) {
-            const superEntity = m[1];
-            const subs = m[2].split(',').map(s => s.trim());
-            isa.push({superEntity, subs});
-        }
-        // Entities
-        else if (m = line.match(/^entity\s+(\w+)$/)) entities.push(m[1]);
-        else if (m = line.match(/^weak entity\s+(\w+)$/)) weakEntities.push(m[1]);
-        // Attributes
-        else if (m = line.match(/^attribute\s+(\w+)(?:\s+(PK|MULTI|DERIVED))?/)) {
-            attributes.push({name: m[1], type: m[2] || null});
-        }
-        // Relationships
-        else if (m = line.match(/^relationship\s+(\w+)/)) relationships.push({name:m[1]});
-        else if (m = line.match(/^identifying relationship\s+(\w+)/)) relationships.push({name:m[1], identifying:true});
-        // Entity-relationship edges
-        else if (m = line.match(/^(\w+)\s+\((\d+|N|M)\)\s+--\s+\((\d+|N|M)\)\s+(\w+)/)) {
-            edges.push({from:m[1], fromCard:m[2], to:m[4], toCard:m[3]});
-        }
-    });
 
-    // DOT generation
-    let dot = 'digraph ER {\n';
-    dot += 'graph [splines=true, rankdir=LR, fontsize=12];\n';
-    dot += 'node [fontname="Helvetica"];\n';
+        // Entity
+        if (m = line.match(/^entity\s+(\w+)$/)) {
+            entities[m[1]] = { weak: false };
+        }
+
+        // Weak Entity
+        else if (m = line.match(/^weak entity\s+(\w+)$/)) {
+            entities[m[1]] = { weak: true };
+        }
+
+        // Attribute
+        else if (m = line.match(/^attribute\s+(\w+)\s+(\w+)(?:\s+(PK|MULTI|DERIVED))?$/)) {
+            attributes.push({
+                owner: m[1],
+                name: m[2],
+                type: m[3] || null
+            });
+        }
+
+        // Composite Attribute
+        else if (m = line.match(/^composite\s+(\w+)\s+(\w+)\s*{(.+)}$/)) {
+            composites.push({
+                owner: m[1],
+                name: m[2],
+                parts: m[3].split(",").map(p => p.trim())
+            });
+        }
+
+        // Relationship
+        else if (m = line.match(/^relationship\s+(\w+)$/)) {
+            relationships[m[1]] = { identifying: false };
+        }
+
+        // Identifying Relationship
+        else if (m = line.match(/^identifying relationship\s+(\w+)$/)) {
+            relationships[m[1]] = { identifying: true };
+        }
+
+        // Relationship edge with cardinality + participation
+        else if (m = line.match(
+            /^(\w+)\s+(\w+)\s+\((1|N|M)\)\s+(TOTAL|PARTIAL)\s+--\s+\((1|N|M)\)\s+(TOTAL|PARTIAL)\s+(\w+)$/
+        )) {
+            edges.push({
+                rel: m[1],
+                from: m[2],
+                fromCard: m[3],
+                fromPart: m[4],
+                toCard: m[5],
+                toPart: m[6],
+                to: m[7]
+            });
+        }
+    }
+
+    // DOT
+    let dot = `digraph ER {
+graph [rankdir=LR, splines=true];
+node [fontname="Helvetica"];
+edge [arrowhead=none];
+`;
 
     // Entities
-    entities.forEach(e => dot += `  ${e} [shape=rectangle];\n`);
-    weakEntities.forEach(e => dot += `  ${e} [shape=rectangle, peripheries=2];\n`);
-
-    // Attributes
-    attributes.forEach(a => {
-        let label = a.name;
-        if(a.type==='PK') label = `<u>${a.name}</u>`;
-        let style = 'ellipse';
-        if(a.type==='MULTI') style += ', peripheries=2';
-        if(a.type==='DERIVED') style += ', style=dashed';
-        dot += `  ${a.name} [shape=${style}, label="${label}"];\n`;
-    });
+    for (const [name, e] of Object.entries(entities)) {
+        dot += `  ${name} [shape=rectangle${e.weak ? ", peripheries=2" : ""}];\n`;
+    }
 
     // Relationships
-    relationships.forEach(r => {
-        let style = 'diamond';
-        if(r.identifying) style += ', penwidth=3';
-        dot += `  ${r.name} [shape=${style}];\n`;
-    });
+    for (const [name, r] of Object.entries(relationships)) {
+        dot += `  ${name} [shape=diamond${r.identifying ? ", penwidth=3" : ""}];\n`;
+    }
 
-    // ISA triangles
-    isa.forEach(i => {
-        const triName = `ISA_${i.superEntity}`;
-        dot += `  ${triName} [shape=triangle, label="ISA"];\n`;
-        dot += `  ${triName} -> ${i.superEntity} [arrowhead=none];\n`;
-        i.subs.forEach(s => dot += `  ${triName} -> ${s} [arrowhead=none];\n`);
-    });
+    // Attributes
+    for (const a of attributes) {
+        let attrs = [];
+        if (a.type === "MULTI") attrs.push("peripheries=2");
+        if (a.type === "DERIVED") attrs.push("style=dashed");
 
-    // Edges
-    edges.forEach(e => {
-        dot += `  ${e.from} -> ${e.to} [label="${e.fromCard}:${e.toCard}", arrowhead=none];\n`;
-    });
+        let label = a.type === "PK"
+            ? `< <u>${a.name}</u> >`
+            : a.name;
 
-    dot += '}';
+        dot += `  ${a.owner}_${a.name} [shape=ellipse, label=${label}${attrs.length ? ", " + attrs.join(",") : ""}];\n`;
+        dot += `  ${a.owner} -> ${a.owner}_${a.name};\n`;
+    }
+
+    // Composite attributes
+    for (const c of composites) {
+        dot += `  ${c.owner}_${c.name} [shape=ellipse, label="${c.name}"];\n`;
+        dot += `  ${c.owner} -> ${c.owner}_${c.name};\n`;
+        for (const p of c.parts) {
+            dot += `  ${c.owner}_${c.name}_${p} [shape=ellipse, label="${p}"];\n`;
+            dot += `  ${c.owner}_${c.name} -> ${c.owner}_${c.name}_${p};\n`;
+        }
+    }
+
+    // Relationship edges
+    for (const e of edges) {
+        dot += `  ${e.rel} -> ${e.from} [label="${e.fromCard}", penwidth=${e.fromPart === "TOTAL" ? 3 : 1}];\n`;
+        dot += `  ${e.rel} -> ${e.to} [label="${e.toCard}", penwidth=${e.toPart === "TOTAL" ? 3 : 1}];\n`;
+    }
+
+    dot += "}";
     return dot;
 }
