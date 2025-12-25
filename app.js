@@ -10,25 +10,20 @@ const dslInput = document.getElementById('dslInput');
 // Starter DSL for Chen ER
 // -------------------------
 const starterDSL = `# Starter Chen ER example
-entity Book
-attribute isbn PK
-attribute title
-entity Author
-attribute auth_id PK
-attribute auth_name
-relationship Written_By
-Book (N) -- (M) Author
-entity User
-attribute u_id PK
-attribute username
-relationship Places
-User (1) -- (N) Book
-ISA User { Admin, Customer }
-weak entity CartItem
-attribute quantity
-relationship Contains
-CartItem (1) -- (1) Book
-CartItem (1) -- (1) Cart
+entity Student
+entity Course
+weak entity Enrollment
+
+attribute Student id PK
+attribute Student phone MULTI
+attribute Student age DERIVED
+
+composite Student address { street, city, zip }
+
+relationship Enrolls
+identifying relationship HasEnrollment
+
+Enrolls Student (1) TOTAL -- (N) PARTIAL Course
 `;
 
 dslInput.value = starterDSL;
