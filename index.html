@@ -59,17 +59,22 @@ weak entity Enrollment
 # ATTRIBUTES
 # ------------------------------
 
-# Basic attribute
-attribute EntityName attributeName
+# Attributes can belong to:
+# - an Entity
+# - a Relationship
+#
+# The syntax is identical in both cases.
+
+attribute OwnerName attributeName
 
 # Key attribute (underlined)
-attribute EntityName attributeName PK
+attribute OwnerName attributeName PK
 
 # Multivalued attribute (double oval)
-attribute EntityName attributeName MULTI
+attribute OwnerName attributeName MULTI
 
 # Derived attribute (dashed oval)
-attribute EntityName attributeName DERIVED
+attribute OwnerName attributeName DERIVED
 
 # Examples:
 attribute Student id PK

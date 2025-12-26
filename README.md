@@ -2,16 +2,28 @@
 
 A web-based Chen ER diagram generator that lets you write a simple DSL (Domain Specific Language) and instantly generate ER diagrams as SVGs. Powered by [Graphviz](https://graphviz.org/) compiled to WebAssembly (`@hpcc-js/wasm-graphviz`).
 
-This project is designed to run **entirely in the browser** and works on GitHub Pages — no installation or backend required.
+This project runs **entirely in the browser** and works on GitHub Pages — no installation or backend required.
 
 ---
 
 ## **Features**
 
-* Create entities, weak entities, attributes, relationships, and ISA hierarchies using a simple DSL.
-* Automatic generation of SVG diagrams.
+* Create **entities** and **weak entities**.
+* Add **attributes** to entities or relationships, including:
+
+  * **Primary Key** (`PK`)
+  * **Multivalued attributes** (`MULTI`)
+  * **Derived attributes** (`DERIVED`)
+  * **Composite attributes** (with sub-attributes)
+* Define **relationships**, including:
+
+  * Regular and **identifying relationships**.
+  * Cardinality and participation (`(1|N|M) (TOTAL|PARTIAL)`).
+* Define **ISA / inheritance hierarchies**.
+* Automatic generation of **SVG diagrams**.
+* Pan and zoom support for diagram preview.
 * Compile button to refresh diagram based on DSL.
-* Download button to save the diagram as `SVG`.
+* Download diagram as **SVG** or **PNG**.
 * Starter DSL included to demonstrate functionality.
 * Fully client-side; powered by [Graphviz WASM](https://github.com/hpcc-systems/hpcc-js-wasm).
 * Syntax help section included.
@@ -20,42 +32,99 @@ This project is designed to run **entirely in the browser** and works on GitHub 
 
 ## **DSL Syntax Overview**
 
-Basic Chen ER DSL example:
+### Entities
 
-```
-entity Book
-attribute isbn PK
-attribute title
-
-entity Author
-attribute auth_id PK
-attribute auth_name
-
-relationship Written_By
-Book (N) -- (M) Author
-
-entity User
-attribute u_id PK
-attribute username
-
-relationship Places
-User (1) -- (N) Book
-
-ISA User { Admin, Customer }
-
-weak entity CartItem
-attribute quantity
-relationship Contains
-CartItem (1) -- (1) Book
-CartItem (1) -- (1) Cart
+```text
+entity EntityName
+weak entity WeakEntityName
 ```
 
-* **entity <name>**: declares an entity
-* **weak entity <name>**: declares a weak entity
-* **attribute <name> [PK]**: declares an attribute; add `PK` for primary key
-* **relationship <name>**: declares a relationship
-* **<Entity> (card) -- (card) <Entity>**: defines relationships with cardinality
-* **ISA <Entity> { Sub1, Sub2 }**: defines specialization/inheritance
+**Examples:**
+
+```text
+entity Student
+weak entity Enrollment
+```
+
+---
+
+### Attributes
+
+* Attributes can belong to **entities** or **relationships**.
+* Syntax is identical for both.
+
+```text
+attribute OwnerName attributeName
+attribute OwnerName attributeName PK       # primary key
+attribute OwnerName attributeName MULTI    # multivalued
+attribute OwnerName attributeName DERIVED  # derived
+```
+
+**Examples:**
+
+```text
+attribute Student id PK
+attribute Student phone MULTI
+attribute Student age DERIVED
+
+attribute Enrolls role
+```
+
+---
+
+### Composite Attributes
+
+```text
+composite OwnerName attributeName { sub1, sub2, sub3 }
+```
+
+**Example:**
+
+```text
+composite Student address { street, city, zip }
+```
+
+---
+
+### Relationships
+
+```text
+relationship RelationshipName
+identifying relationship RelationshipName
+```
+
+**Examples:**
+
+```text
+relationship Enrolls
+identifying relationship HasEnrollment
+```
+
+---
+
+### Cardinality & Participation
+
+```text
+RelationshipName EntityA (1|N|M) (TOTAL|PARTIAL) -- (1|N|M) (TOTAL|PARTIAL) EntityB
+```
+
+**Notes:**
+
+* `TOTAL` = total participation (double line)
+* `PARTIAL` = partial participation (single line)
+
+**Examples:**
+
+```text
+Enrolls Student (1) TOTAL -- (N) PARTIAL Course
+HasEnrollment Enrollment (1) TOTAL -- (1) TOTAL Student
+```
+
+---
+
+### Comments
+
+* Any line starting with `#` is ignored.
 
 ---
 
@@ -69,12 +138,12 @@ git clone https://github.com/ahmwael/chen-er-generator.git
 
 2. Open `index.html` in your browser **or deploy to GitHub Pages**.
 
-   * The app is fully client-side; no backend required.
+   * Fully client-side; no backend required.
    * Uses Graphviz WASM from CDN, so it works immediately.
 
 3. Write your DSL in the editor, click **Compile**, and view the diagram.
 
-4. Click **Download** to save the diagram as SVG.
+4. Click **Download** to save the diagram as SVG or PNG.
 
 ---
 
@@ -97,21 +166,18 @@ chen-er-generator/
 ## **Credits**
 
 * Uses [Graphviz](https://graphviz.org/) compiled to WebAssembly via [`@hpcc-js/wasm-graphviz`](https://github.com/hpcc-systems/hpcc-js-wasm).
-* Inspired by [PlantUML](https://plantuml.com/) for code-to-diagram generation.
-
----
-
-## **Future Features**
-
-* Support for multiple diagrams in one page.
-* Live syntax checking in the DSL editor.
-* Export as PNG in addition to SVG.
-* More complete Chen ER features like composite attributes, multi-attribute keys, and optional relationships.
 
 ---
 
 ## **Contact**
 
-Developed by **Ahmad Wael** 
+Developed by **Ahmad Wael**
 
 For issues, suggestions, or contributions, open a GitHub issue or submit a PR.
+
+
+
+
+
+
+
